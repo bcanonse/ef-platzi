@@ -53,11 +53,33 @@ app.MapPost("/api/tasks/", async (
 
     return Results.CreatedAtRoute(
         routeName: "GetTaskById",
-        routeValues: new { id = task.Id }, 
+        routeValues: new { id = task.Id },
         value: task
     );
 }).WithName("CreateTask")
     .Produces(StatusCodes.Status201Created)
     .Produces(StatusCodes.Status400BadRequest);
+
+
+app.MapPut("/api/tasks/{id:guid}", async (
+    [FromServices] TaskContext taskContext,
+    [FromRoute] Guid id,
+    [FromBody] TaskModel taskPost) =>
+{
+
+    var task = await taskContext.Tasks.FindAsync(id);
+
+    if (task is null)
+        return Results.NotFound();
+
+    task.CategoryId = taskPost.CategoryId;
+    task.Title = taskPost.Title;
+    task.Description = task.Description;
+    task.Priority = taskPost.Priority;
+
+    await taskContext.SaveChangesAsync();
+
+    return Results.NoContent();
+});
 
 app.Run();
