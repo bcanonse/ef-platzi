@@ -10,5 +10,6 @@ public class Category
 
     public int Weight { get; set; }
 
+    [JsonIgnore]
     public virtual ICollection<TaskModel> Tasks { get; set; }
 }
