@@ -82,4 +82,21 @@ app.MapPut("/api/tasks/{id:guid}", async (
     return Results.NoContent();
 });
 
+app.MapDelete("/api/tasks/{id:guid}", async (
+    [FromServices] TaskContext taskContext,
+    [FromRoute] Guid id) =>
+{
+
+    var task = await taskContext.Tasks.FindAsync(id);
+
+    if (task is null)
+        return Results.NotFound();
+
+    taskContext.Remove(task);
+    
+    await taskContext.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+
 app.Run();
