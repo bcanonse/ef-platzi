@@ -16,6 +16,7 @@ public class TaskContext : DbContext
             category.Property(field => field.Id).HasColumnName("id");
             category.Property(field => field.Name).IsRequired().HasMaxLength(150).HasColumnName("name");
             category.Property(field => field.Description).HasColumnName("description");
+            category.Property(field => field.Weight).HasColumnName("weight");
         });
 
         modelBuilder.Entity<TaskModel>(task =>
