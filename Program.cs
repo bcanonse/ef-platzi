@@ -21,7 +21,7 @@ app.MapGet("/api/tasks", async (
     var tasks = await taskContext.Tasks.Include(task => task.Category)
         .ToListAsync();
 
-    if(id is not null || id >= -1)
+    if (id.HasValue)
         return Results.Ok(tasks.Where(task => (int)task.Priority == id).ToList());
 
     return Results.Ok(tasks);
@@ -33,6 +33,31 @@ app.MapGet("/api/tasks/{id:guid}", async ([FromServices] TaskContext taskContext
         .Where(task => task.Id == id).FirstOrDefaultAsync();
 
     return Results.Ok(tasks);
-});
+}).WithName("GetTaskById")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status404NotFound);
+
+app.MapPost("/api/tasks/", async (
+    [FromServices] TaskContext taskContext,
+    [FromBody] TaskModel task) =>
+{
+
+    if (await taskContext.Categories.FindAsync(task.CategoryId) is null)
+        return Results.BadRequest(new { message = "Category not found" });
+
+    task.Id = Guid.NewGuid();
+    task.CreatedDate = DateTime.Now;
+
+    await taskContext.AddAsync(task);
+    await taskContext.SaveChangesAsync();
+
+    return Results.CreatedAtRoute(
+        routeName: "GetTaskById",
+        routeValues: new { id = task.Id }, 
+        value: task
+    );
+}).WithName("CreateTask")
+    .Produces(StatusCodes.Status201Created)
+    .Produces(StatusCodes.Status400BadRequest);
 
 app.Run();
